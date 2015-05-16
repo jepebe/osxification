@@ -1,7 +1,9 @@
 import ctypes
+import logging
 from osxification.core_foundation import CFFunction, Prototype
 
-
+FORMAT = '%(levelname)-8s [%(filename)s %(funcName)s %(lineno)s]: %(message)s'
+logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 
 Prototype.registerType("CFIndex", ctypes.c_long)
 Prototype.registerType("CFTypeID", ctypes.c_ulong)
@@ -37,7 +39,16 @@ class CFType(object):
         if c_class_object is None:
             return ctypes.c_void_p()
         else:
+            # logging.debug("Used through from_param: %s", cls.__name__)
             return ctypes.c_void_p(c_class_object.__c_pointer)
+
+    @property
+    def _as_parameter_(self):
+        """
+        :rtype: (str, int)
+        """
+        # logging.debug("Used directly through as_parameter: %s", self.__class__.__name__)
+        return ctypes.c_void_p(self.__c_pointer)
 
     @classmethod
     def createCReference(cls, pointer):
@@ -102,7 +113,7 @@ class CFType(object):
             else:
                 return cftype.createPythonObject(c_pointer)
 
-        print("[CFType] Unable to convert pointer with unknown type id: %d [%s]" % (type_id, CFType.getTypeDescription(type_id)))
+        logging.warning("Unable to convert pointer with type id: %d [%s]", type_id, CFType.getTypeDescription(type_id))
 
         return c_pointer
 

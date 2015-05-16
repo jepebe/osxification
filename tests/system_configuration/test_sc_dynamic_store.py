@@ -12,12 +12,12 @@ class SCDynamicStoreTest(TestCase):
             for key in keys:
                 print(key)
                 dictionary = store.getValue(key)
-                dictionary.show()
+                # dictionary.show()
 
                 for key in dictionary.keys():
                     self.assertTrue(key in dictionary)
                     value = dictionary[key]
-                    print("%s: %s" % (key, value))
+                    print("\t%s: %s" % (key, value))
 
 
             #print(store, keys, info)
@@ -34,7 +34,8 @@ class SCDynamicStoreTest(TestCase):
 
         self.assertTrue(len(keys) > 0)
 
-        pattern = CFArray(['State:/Network/Interface/.*/AirPort', 'State:/Network/(Service/.+|Global)/Proxies'])
+        pattern = CFArray(['State:/Network/Interface/.*/AirPort'])
+        # pattern = CFArray(['State:/Network/Interface/.*/AirPort', 'State:/Network/(Service/.+|Global)/Proxies'])
 
         success = dynamic_store.setNotificationKeys(pattern=pattern)
         self.assertTrue(success)
@@ -51,7 +52,7 @@ class SCDynamicStoreTest(TestCase):
         # for key in notified_keys:
         #     print(key)
 
-        result = CFRunLoop.runInMode(seconds=30, return_after_source_handled=False)
-        print(result)
+        result = CFRunLoop.runInMode(seconds=10, return_after_source_handled=False)
+        #print(result)
         #
-        # CFRunLoop.run()
+        #CFRunLoop.run()

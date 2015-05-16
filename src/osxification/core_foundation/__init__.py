@@ -14,6 +14,10 @@ def CFFunction(c_prototype):
 
 from .cf_type import CFType
 from .cf_boolean import CFBoolean
+from .cf_number_type import CFNumberType
+from .cf_number import CFNumber
+from .cf_date import CFDate
+from .cf_data import CFData
 from .cf_string import CFString
 from .cf_array import CFArray
 from .cf_bundle import CFBundle

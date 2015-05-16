@@ -1,5 +1,6 @@
 import ctypes
 from functools import wraps
+import logging
 from types import MethodType
 from osxification.objc import objc, Identifier, Class
 
@@ -20,6 +21,9 @@ class NSObject(object):
 
     @property
     def _as_parameter_(self):
+        """
+        :rtype: Identifier
+        """
         return self._identifier
 
     @classmethod
@@ -38,8 +42,11 @@ class NSObject(object):
 
     @classmethod
     def _as_return_type_(cls, identifier):
+        """ :rtype: cls """
         if identifier is None or identifier.value is None:
             return None
+
+        logging.debug("Class %s used as return type", cls.__name__)
 
         new_obj = cls.__new__(cls)
         NSObject.__init__(new_obj, identifier)
@@ -47,6 +54,7 @@ class NSObject(object):
 
     @classmethod
     def alloc(cls):
+        """ :rtype: cls """
         class_def = cls.getClass()
 
         if class_def is not None:
@@ -63,6 +71,7 @@ class NSObject(object):
 
     @classmethod
     def new(cls):
+        """ :rtype: Identifier """
         return objc.invoke(cls.alloc(), "init")
 
     def __del__(self):
@@ -71,9 +80,7 @@ class NSObject(object):
 
     @classmethod
     def getClass(cls):
-        """
-        :rtype: Class
-        """
+        """:rtype: Class """
         class_def = objc.getClass(cls.__name__)
 
         if class_def is None and hasattr(cls, "_objc_class_"):
@@ -83,6 +90,7 @@ class NSObject(object):
         return class_def
 
     def isKindOfClass(self, class_instance):
+        """ :rtype: bool """
         assert isinstance(class_instance, (Class, NSObject))
         if isinstance(class_instance, NSObject):
             class_instance = class_instance.getClass()
