@@ -4,6 +4,12 @@ from osxification.objc import ObjCFunction
 
 
 class Selector(ctypes.c_void_p):
+    @staticmethod
+    def checkSelector(selector):
+        if isinstance(selector, str):
+            selector = Selector.registerName(selector)
+        assert isinstance(selector, Selector)
+        return selector
 
     def getName(self):
         """
@@ -16,8 +22,8 @@ class Selector(ctypes.c_void_p):
         """
         :rtype: Selector
         """
-        assert isinstance(name, (str, unicode))
-        return Selector._registerName(name)
+        assert isinstance(name, str)
+        return Selector._registerName(name.encode())
 
 
 Prototype.registerType("SEL", Selector)

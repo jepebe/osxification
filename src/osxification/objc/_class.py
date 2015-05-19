@@ -1,10 +1,10 @@
 import ctypes
 from osxification.c import Prototype, STDLIB
-from osxification.objc import ObjCFunction, Method, Selector
-from osxification.objc._identifier import Identifier
+from osxification.objc import ObjCFunction, Method, Selector, Identifier
 
 
 class Class(ctypes.c_void_p):
+
 
     @staticmethod
     def _asReturnType(value):
@@ -41,6 +41,15 @@ class Class(ctypes.c_void_p):
         STDLIB.free(array)
         return methods
 
+    def addProtocol(self, protocol):
+        """ :rtype: bool """
+        return Class._addProtocol(self, protocol)
+
+    def respondsToSelector(self, selector):
+        """ :rtype: bool """
+        selector = Selector.checkSelector(selector)
+        return Class._respondsToSelector(self, selector)
+
 
     def addMethod(self, selector, function, types="@@:"):
         """
@@ -49,8 +58,7 @@ class Class(ctypes.c_void_p):
         :type types: str
         :rtype: bool
         """
-        if isinstance(selector, (str, unicode)):
-            selector = Selector.registerName(selector)
+        selector = Selector.checkSelector(selector)
 
         return_type = Identifier
         if types[0] == "i":
@@ -71,6 +79,12 @@ class Class(ctypes.c_void_p):
             return self.value == other.value
         return False
 
+    def __str__(self):
+        return self.getName()
+
+    def __repr__(self):
+        return "<ObjectiveC Class with name: %s>" % self.getName()
+
 
 Prototype.registerType("Class", Class)
 
@@ -78,3 +92,5 @@ Class._getName = ObjCFunction("char* class_getName(Class)")
 Class._getSuperclass = ObjCFunction("Class class_getSuperclass(Class)")
 Class._getMethodList = ObjCFunction("void** class_copyMethodList(Class, uint*)")
 Class._addMethod = ObjCFunction("bool class_addMethod(Class, SEL, void*, char*)")
+Class._addProtocol = ObjCFunction("bool class_addProtocol(Class, Protocol)")
+Class._respondsToSelector = ObjCFunction("bool class_respondsToSelector(Class, SEL)")

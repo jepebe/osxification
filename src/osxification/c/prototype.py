@@ -3,6 +3,22 @@ import re
 import sys
 import inspect
 
+class UTF8String(object):
+    @classmethod
+    def from_param(cls, value):
+        if isinstance(value, bytes):
+            return value
+        elif isinstance(value, ctypes.Array):
+            return value
+        else:
+            return value.encode('UTF-8')
+
+    @staticmethod
+    def _asReturnType(value):
+        if value is None or value == 0:
+            return None
+        return str(ctypes.c_char_p(value).value, encoding="UTF-8")
+
 class PrototypeError(Exception):
     pass
 
@@ -25,8 +41,8 @@ class Prototype(object):
         "long":     ctypes.c_long,
         "long*":    ctypes.POINTER(ctypes.c_long),
         "char":     ctypes.c_char,
-        "char*":    ctypes.c_char_p,
-        "char**":   ctypes.POINTER(ctypes.c_char_p),
+        "char*":    UTF8String,
+        # "char**":   ctypes.POINTER(UTF8String),
         "wchar":    ctypes.c_wchar,
         "wchar*":   ctypes.c_wchar_p,
         "wchar**":  ctypes.POINTER(ctypes.c_wchar_p),
@@ -140,5 +156,5 @@ class Prototype(object):
     @classmethod
     def printRegisteredTypes(cls):
         for ctype in cls.REGISTERED_TYPES.keys():
-            print "%16s -> %s" % (ctype, cls.REGISTERED_TYPES[ctype])
+            print("%16s -> %s" % (ctype, cls.REGISTERED_TYPES[ctype]))
 

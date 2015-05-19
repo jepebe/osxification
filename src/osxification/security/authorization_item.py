@@ -7,3 +7,11 @@ class AuthorizationItem(ctypes.Structure):
         ('value', ctypes.c_void_p),
         ('flags', ctypes.c_uint32),
     ]
+
+    def __init__(self, name, valueLength, value, flags):
+        self.name = name.encode()
+        self.valueLength = valueLength
+        self.value = value
+        self.flags = flags
+
+

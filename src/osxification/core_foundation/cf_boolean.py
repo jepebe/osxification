@@ -4,7 +4,7 @@ from osxification.core_foundation import CFType, Prototype, CFFunction
 class CFBoolean(CFType):
     type_id_function = CFFunction("CFTypeID CFBooleanGetTypeID()")
 
-    def __nonzero__(self):
+    def __bool__(self):
         return CFBoolean._GetValue(self)
 
     def __int__(self):

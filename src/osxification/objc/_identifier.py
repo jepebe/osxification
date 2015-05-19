@@ -7,6 +7,11 @@ class Identifier(ctypes.c_void_p):
     def __eq__(self, other):
         if isinstance(other, ctypes.c_void_p):
             return self.value == other.value
+
+        if hasattr(other, "_as_parameter_"):
+            other = other._as_parameter_ #convert any ObjCClass (or anyone else) that are wrapping identifiers
+            return self.value == other.value
+
         return False
 
     @classmethod
@@ -21,6 +26,9 @@ class Identifier(ctypes.c_void_p):
             return ctypes.c_void_p()
         else:
             return identifier
+
+    def __bool__(self):
+        return bool(self.value)
 
 
 

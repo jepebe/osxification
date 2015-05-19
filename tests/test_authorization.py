@@ -17,4 +17,4 @@ class AuthorizationTest(unittest.TestCase):
         item = AuthorizationItem("net.prador.proxychanger", 0, None, 0)
         rights = AuthorizationRights(1, ctypes.pointer(item))
 
-        #authorization = Authorization(rights=rights, flags=flags)
+        # authorization = Authorization(rights=rights, flags=flags)

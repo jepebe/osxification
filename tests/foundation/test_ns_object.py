@@ -5,12 +5,11 @@ from osxification.foundation import NSObject, NSStringEncoding, NSLog, NSString
 from osxification.objc import autoreleasepool, objc
 
 
-class nsstring(NSObject):
-    _objc_class_ = "NSString"
+class nsstring(NSObject, objc_class="NSString"):
 
     def __init__(self, content):
         identifier = nsstring._init(self.alloc(), content, NSStringEncoding.NSUTF8StringEncoding)
-        super(nsstring, self).__init__(identifier)
+        super().__init__(identifier)
 
     def __str__(self):
         return self._asCString(NSStringEncoding.NSUTF8StringEncoding)
@@ -31,7 +30,7 @@ nsstring._floatValue = nsstring.bindMethodToClass("doubleValue", returns=float)
 
 class ObjCClassTest(TestCase):
     def setUp(self):
-        super(ObjCClassTest, self).setUp()
+        super().setUp()
         self.FOUNDATION = ctypes.cdll.LoadLibrary(ctypes.util.find_library("foundation"))
 
     def test_class_creation(self):

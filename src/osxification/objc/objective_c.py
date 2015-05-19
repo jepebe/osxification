@@ -1,7 +1,6 @@
 import contextlib
 import ctypes
-from types import MethodType
-from osxification.objc import ObjCFunction, Class, Selector, Identifier
+from osxification.objc import ObjCFunction, Class, Selector, Identifier, Protocol
 
 @contextlib.contextmanager
 def autoreleasepool():
@@ -17,14 +16,33 @@ class objc(object):
         """
         :rtype: Class
         """
-        assert isinstance(class_name, (str, unicode))
+        assert isinstance(class_name, str)
         return objc._getClass(class_name)
+
+    @staticmethod
+    def getProtocol(protocol_name):
+        """
+        :rtype: Protocol
+        """
+        assert isinstance(protocol_name, str)
+        return objc._getProtocol(protocol_name)
+
+    @staticmethod
+    def _convertArgs(*args):
+        converted_args = []
+        for arg in args:
+            if isinstance(arg, str):
+                converted_args.append(arg.encode())
+            else:
+                converted_args.append(arg)
+        return converted_args
 
     @staticmethod
     def msgSend(instance, selector, *args):
         """
         :rtype: Identifier
         """
+        args = objc._convertArgs(*args)
         return objc._msgSend(instance, selector, *args)
 
     @staticmethod
@@ -32,6 +50,7 @@ class objc(object):
         """
         :rtype: float
         """
+        args = objc._convertArgs(*args)
         return objc._msgSend_fpret(instance, selector, *args)
 
     @staticmethod
@@ -39,8 +58,7 @@ class objc(object):
         """
         :rtype: Identifier
         """
-        if isinstance(selector, (str, unicode)):
-            selector = Selector.registerName(selector)
+        selector = Selector.checkSelector(selector)
 
         return objc.msgSend(instance, selector, *args)
 
@@ -58,8 +76,7 @@ class objc(object):
     def createFunction(cls, selector, argument_types=None, return_type=None):
         def func(self, *args):
             _selector = selector
-            if isinstance(_selector, (str, unicode)):
-                _selector = Selector.registerName(_selector)
+            _selector = Selector.checkSelector(_selector)
 
             if argument_types is not None:
                 new_args = []
@@ -78,7 +95,7 @@ class objc(object):
             if return_type is float:
                 result = return_type(result)
             elif return_type is str:
-                result = ctypes.c_char_p(result.value).value
+                result = str(ctypes.c_char_p(result.value).value, encoding="UTF-8")
             elif hasattr(return_type, "_as_return_type_"):
                 result = return_type._as_return_type_(result)
             elif return_type is not None:
@@ -89,9 +106,7 @@ class objc(object):
 
     @classmethod
     def bindMethodToClass(cls, receiver_class, selector):
-        func = cls.createFunction(selector)
-        bound_method = MethodType(func, None, receiver_class)
-        return bound_method
+        return cls.createFunction(selector)
 
     @classmethod
     def allocateClassPair(cls, super_class, name):
@@ -116,10 +131,26 @@ class objc(object):
         """
         return objc._getClassName(identifier)
 
+    @classmethod
+    def getProtocols(cls):
+        """ :rtype: list of Protocol """
+        count = ctypes.c_uint(0)
+
+        array = objc._copyProtocolList(ctypes.byref(count))
+
+        items = []
+        for index in range(count.value):
+            items.append(Protocol(array[index]))
+
+        return items
+
 
 
 objc._getClass = ObjCFunction("Class objc_getClass(char*)")
 objc._getClassName = ObjCFunction("char* object_getClassName(id)")
+
+objc._getProtocol = ObjCFunction("Protocol objc_getProtocol(char*)")
+objc._copyProtocolList = ObjCFunction("void** objc_copyProtocolList(uint*)")
 
 objc._msgSend = ObjCFunction("id objc_msgSend(id, SEL)")
 objc._msgSend_fpret = ObjCFunction("double objc_msgSend_fpret(id, SEL)")

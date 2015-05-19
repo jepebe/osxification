@@ -1,11 +1,61 @@
 import ctypes
-from functools import wraps
 import logging
 from types import MethodType
-from osxification.objc import objc, Identifier, Class
+from osxification.objc import objc, Identifier, Class, ProtocolType
 
 
-class NSObject(object):
+class _MetaNSObjectType(type):
+
+
+    @staticmethod
+    def __new__(cls, name, bases, namespace, **options):
+        return super().__new__(cls, name, bases, namespace)
+
+    def __init__(cls, name, bases, namespace, objc_class=None, **options):
+        super(_MetaNSObjectType, cls).__init__(name, bases, namespace)
+        class_def = cls.resolveClass(name, bases, objc_class)
+
+        cls._objc_class_name_ = class_def.getName()
+
+        # if "_protocols_" in dct:
+        #     pass
+
+
+
+
+    def resolveClass(cls, name, bases, objc_class):
+        """ :rtype: Class """
+        class_def = objc.getClass(name)
+
+        if class_def is None and objc_class is not None:
+            logging.warning("Using manual class override for class: %s (objc_class=\"%s\")", cls.__name__, objc_class)
+            class_def = objc.getClass(objc_class)
+
+            if class_def is None:
+                raise TypeError("Objective C class with name: %s does not exist!" % objc_class)
+
+        if class_def is None:
+            super_class = objc.getClass("NSObject")
+            for base in bases:
+                if hasattr(base, "getClass"):
+                    try:
+                        test_super_class = base.getClass()
+                        assert isinstance(test_super_class, Class)
+                        super_class = test_super_class
+                        break
+                    except (AttributeError, AssertionError):
+                        pass
+
+            logging.warning("Class '%s' is not registered. Auto registering with super class: %s" , name, super_class)
+            new_class = objc.allocateClassPair(super_class, name)
+            objc.registerClassPair(new_class)
+            class_def = new_class
+        return class_def
+
+
+
+
+class NSObject(object, metaclass=_MetaNSObjectType):
 
     def __init__(self, identifier):
         self._identifier = identifier
@@ -13,11 +63,18 @@ class NSObject(object):
     def __eq__(self, other):
         if isinstance(other, NSObject):
             return self._identifier == other._identifier
+
+        if isinstance(other, Identifier):
+            return self._identifier == other
+
         return False
 
     def description(self):
         from .ns_string import NSString
         return NSString._as_return_type_(self._description())
+
+    def conformsToProtocol(self, protocol):
+        return bool(objc.invoke(self, "conformsToProtocol:", protocol))
 
     @property
     def _as_parameter_(self):
@@ -83,9 +140,9 @@ class NSObject(object):
         """:rtype: Class """
         class_def = objc.getClass(cls.__name__)
 
-        if class_def is None and hasattr(cls, "_objc_class_"):
-            # print("Reverting to fallback for: %s" % cls.__name__)
-            class_def = objc.getClass(cls._objc_class_)
+        if class_def is None and hasattr(cls, "_objc_class_name_"):
+            logging.debug("Using ObjectiveC class alias: %s for class: %s", cls._objc_class_name_, cls.__name__)
+            class_def = objc.getClass(cls._objc_class_name_)
 
         return class_def
 
@@ -98,9 +155,12 @@ class NSObject(object):
 
     @classmethod
     def bindMethodToClass(cls, selector, parameters=None, returns=None):
-        func = objc.createFunction(selector, argument_types=parameters, return_type=returns)
-        bound_method = MethodType(func, None, cls)
-        return bound_method
+        return objc.createFunction(selector, argument_types=parameters, return_type=returns)
+
+    @classmethod
+    def invokeClassMethod(cls, selector):
+        return objc.invoke(cls.getClass(), selector)
+
 
 
 NSObject._isKindOfClass = NSObject.bindMethodToClass("isKindOfClass:", returns=bool)

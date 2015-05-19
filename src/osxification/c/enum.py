@@ -41,7 +41,7 @@ class Enum(object):
 
         setattr(cls, name, enum_field)
 
-        if not cls.enum_namespace.has_key(cls):
+        if not cls in cls.enum_namespace:
             cls.enum_namespace[cls] = []
 
         cls.enum_namespace[cls].append(enum_field)

@@ -7,11 +7,10 @@ class CFNumberTest(TestCase):
 
     def test_cf_number(self):
         number = CFNumber(1)
-        self.assertEqual(number.getType(), CFNumberType.kCFNumberSInt32Type)
+        self.assertEqual(number.getType(), CFNumberType.kCFNumberSInt64Type)
         self.assertFalse(number.isFloatType())
         self.assertEqual(str(number), "1")
         self.assertEqual(int(number), 1)
-        self.assertEqual(long(number), 1L)
         self.assertEqual(float(number), 1.0)
 
         number = CFNumber(1.1)
@@ -19,7 +18,6 @@ class CFNumberTest(TestCase):
         self.assertTrue(number.isFloatType())
         self.assertEqual(str(number), "1.1")
         self.assertEqual(int(number), 1)
-        self.assertEqual(long(number), 1L)
         self.assertAlmostEqual(float(number), 1.1)
 
 

@@ -6,12 +6,12 @@ class CFString(CFType):
     type_id_function = CFFunction("CFTypeID CFStringGetTypeID()")
 
     def __init__(self, content):
-        c_ptr = CFString._create_with_c_string(None, content, len(content))
-        super(CFString, self).__init__(c_ptr)
+        c_ptr = CFString._create_with_c_string(None, content.encode(), len(content))
+        super().__init__(c_ptr)
 
     def __getitem__(self, index):
         if 0 <= index < len(self):
-            return unichr(CFString._char_at(self, index))
+            return chr(CFString._char_at(self, index))
 
         raise IndexError("Index out of bounds: 0 <= %d < %d" % (index, len(self)))
 
@@ -23,7 +23,7 @@ class CFString(CFType):
         string_buffer = ctypes.create_string_buffer(max_size)
         success = CFString._GetCString(self.convertToPointer(self), string_buffer, max_size, 0x08000100)
         if success:
-            return string_buffer.value
+            return str(string_buffer.value, encoding='UTF-8')
 
         return None
 
@@ -46,7 +46,7 @@ class CFString(CFType):
             c_class_object = CFString(c_class_object)
             c_class_object.retain() #todo: for keeping objects alive, is this necessary? (SCPreferences fails without it)
 
-        return super(CFString, cls).from_param(c_class_object)
+        return super().from_param(c_class_object)
 
     @classmethod
     def createCopy(cls, pointer):

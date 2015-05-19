@@ -10,9 +10,6 @@ class CFNumber(CFType):
         assert value is not None
 
         if isinstance(value, int):
-            value = ctypes.c_int32(value)
-            pointer = CFNumber._Create(None, CFNumberType.kCFNumberSInt32Type, ctypes.pointer(value))
-        elif isinstance(value, long):
             value = ctypes.c_int64(value)
             pointer = CFNumber._Create(None, CFNumberType.kCFNumberSInt64Type, ctypes.pointer(value))
         elif isinstance(value, float):
@@ -47,9 +44,6 @@ class CFNumber(CFType):
 
     def __int__(self):
         return int(self.getValue())
-
-    def __long__(self):
-        return long(self.getValue())
 
     def __float__(self):
         return float(self.getValue())

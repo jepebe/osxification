@@ -10,5 +10,7 @@ def AppKitFunction(c_prototype):
     return Prototype.prototype(c_prototype, APPKIT_LIB)
 
 from .ns_image import NSImage
-
 Foundation.NSUserNotification.contentImage = ObjCProperty("contentImage", property_type=NSImage) # update the property due to circular dependency
+
+from .ns_application_delegate import NSApplicationDelegate
+from .ns_application import NSApplication

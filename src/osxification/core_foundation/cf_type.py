@@ -12,7 +12,7 @@ class MetaCFType(type):
     REGISTERED_TYPES = {}
 
     def __init__(cls, name, bases, dct):
-        super(MetaCFType, cls).__init__(name, bases, dct)
+        super().__init__(name, bases, dct)
 
         cls.TYPE_ID = None
 
@@ -24,8 +24,7 @@ class MetaCFType(type):
             print("[%s] Warning: Class does not provide a type_id_function!" % cls.__name__)
 
 
-class CFType(object):
-    __metaclass__ = MetaCFType
+class CFType(object, metaclass=MetaCFType):
     type_id_function = None
 
     def __init__(self, c_pointer):

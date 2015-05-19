@@ -52,7 +52,7 @@ class SCDynamicStoreTest(TestCase):
         # for key in notified_keys:
         #     print(key)
 
-        result = CFRunLoop.runInMode(seconds=10, return_after_source_handled=False)
+        result = CFRunLoop.runInMode(seconds=1, return_after_source_handled=False)
         #print(result)
         #
         #CFRunLoop.run()

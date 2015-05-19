@@ -11,7 +11,7 @@ class ObjCTest(TestCase):
 
 
     def setUp(self):
-        super(ObjCTest, self).setUp()
+        super().setUp()
         self.FOUNDATION = ctypes.cdll.LoadLibrary(ctypes.util.find_library("foundation"))
 
     def test_message_sending(self):
@@ -33,9 +33,9 @@ class ObjCTest(TestCase):
         self.FOUNDATION.NSLog(string_pointer)
 
         get_selector = Selector.registerName("cStringUsingEncoding:")
-        result = objc.msgSend(string_pointer, get_selector, NSStringEncoding.NSUTF8StringEncoding)
+        identifier = objc.msgSend(string_pointer, get_selector, NSStringEncoding.NSUTF8StringEncoding)
 
-        ns_string_value = ctypes.c_char_p(result.value).value
+        ns_string_value = str(ctypes.c_char_p(identifier.value).value, encoding="UTF-8")
 
         self.assertEqual(ns_string_value, "test_string")
 
@@ -56,6 +56,7 @@ class ObjCTest(TestCase):
         pointer = objc.alloc("NSString")
         initialized_pointer = objc.invoke(pointer, "initWithCString:encoding:", "invoked_test_string", NSStringEncoding.NSUTF8StringEncoding)
         self.FOUNDATION.NSLog(initialized_pointer)
+
 
     def test_method_addition(self):
         class_def = objc.getClass("NSString")
